@@ -2,53 +2,55 @@
     --primary: #00ff88;
     --secondary: #00e1ff;
     --danger: #ff0055;
-    --bg: #050505;
-    --surface: rgba(255, 255, 255, 0.03);
-    --border: rgba(255, 255, 255, 0.08);
+    --bg: #030303;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.07);
+    --font: 'Segoe UI', system-ui, sans-serif;
 }
 
-* { box-sizing: border-box; outline: none; }
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 body { 
-    margin: 0; background: var(--bg); color: #fff; 
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0; background: var(--bg); color: #fff; font-family: var(--font);
     display: flex; height: 100vh; overflow: hidden;
 }
 
-/* Glassmorphism Sidebar */
+/* Sidebar & Navigation */
 .sidebar {
-    width: 320px; background: rgba(10, 10, 10, 0.8);
-    backdrop-filter: blur(20px); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; padding: 30px; z-index: 10;
+    width: 320px; background: #080808; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 2rem; z-index: 100;
 }
 
 .brand { 
-    font-size: 24px; font-weight: 900; color: var(--primary);
-    letter-spacing: 5px; text-align: center; margin-bottom: 50px;
-    text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    font-size: 1.5rem; font-weight: 900; letter-spacing: 6px; 
+    color: var(--primary); margin-bottom: 3rem; text-align: center;
 }
 
-.btn-nav {
-    padding: 14px; margin-bottom: 10px; border-radius: 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    color: #888; cursor: pointer; transition: 0.3s; text-align: left;
+.nav-group { display: flex; flex-direction: column; gap: 0.5rem; }
+.nav-link {
+    padding: 1rem; border-radius: 12px; background: var(--glass);
+    border: 1px solid var(--border); color: #666; cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; align-items: center; gap: 12px;
 }
-.btn-nav:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.btn-nav.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 136, 0.05); }
+.nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); transform: translateX(5px); }
+.nav-link.active { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0,255,136,0.1); }
 
-/* Chat & HUD */
-#logs { flex: 1; overflow-y: auto; font-size: 12px; color: #666; padding: 10px 0; }
-.input-glass {
-    background: rgba(0,0,0,0.5); border: 1px solid var(--border);
-    color: #fff; padding: 12px; border-radius: 8px; width: 100%;
+/* Game Viewport */
+.main-stage { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#game-canvas { border-radius: 12px; box-shadow: 0 40px 100px rgba(0,0,0,0.8); background: #000; }
+
+/* Login Overlay */
+.auth-container {
+    position: fixed; inset: 0; background: var(--bg); display: flex;
+    align-items: center; justify-content: center; z-index: 999;
+}
+.auth-card {
+    width: 400px; padding: 3rem; background: #0a0a0a; border: 1px solid var(--border);
+    border-radius: 24px; text-align: center;
 }
 
-/* Game Area */
-.viewport { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; }
-canvas { border-radius: 8px; box-shadow: 0 0 100px rgba(0,0,0,0.5); }
-
-/* Admin Panel Overlay */
-.overlay {
-    position: absolute; top: 20px; right: 20px; width: 200px;
-    background: rgba(0,0,0,0.9); border: 1px solid var(--border);
-    padding: 15px; border-radius: 12px; display: none;
+.input-field {
+    width: 100%; background: #111; border: 1px solid var(--border);
+    padding: 1rem; border-radius: 12px; color: #fff; margin-bottom: 1rem;
+    font-size: 1rem; text-align: center;
 }

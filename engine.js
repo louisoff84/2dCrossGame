@@ -1,104 +1,139 @@
-class CrossEngine {
+class CrossGame {
     constructor() {
-        this.canvas = document.getElementById('game-canvas');
+        this.canvas = document.getElementById('crossCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.dt = 0; this.lastTime = 0;
         
-        this.player = { x: 120, y: 340, w: 32, h: 32, dy: 0, rot: 0, trail: [] };
+        // Résolution logique fixe (16:9 haute définition)
+        this.width = 1600;
+        this.height = 900;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+
+        this.player = { x: 200, y: 700, w: 70, h: 70, dy: 0, rot: 0 };
         this.obstacles = [];
-        this.config = { gravity: 0.8, jump: -13, speed: 8, active: false };
+        this.particles = [];
         this.score = 0;
+        this.gravity = 1.2;
+        this.jumpForce = -28;
+        this.speed = 12;
+        this.isGrounded = false;
+        
+        this.init();
+    }
 
-        window.addEventListener('keydown', e => {
-            if(e.code === 'Space' && this.player.y >= 340) this.player.dy = this.config.jump;
+    init() {
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.type === 'touchstart') {
+                if (this.isGrounded) {
+                    this.player.dy = this.jumpForce;
+                    this.isGrounded = false;
+                }
+            }
         });
+        this.loop();
     }
 
-    start() { this.config.active = true; this.spawnManager(); this.loop(); }
-
-    spawnManager() {
-        this.spawner = setInterval(() => {
-            if(this.config.active) this.obstacles.push({ x: 900, y: 372, w: 30, h: 40 });
-        }, 1400);
-    }
-
-    loop(t = 0) {
-        this.dt = (t - this.lastTime) / 16.67;
-        this.lastTime = t;
-
-        if(this.config.active) {
-            this.update();
-            this.draw();
+    spawnObstacle() {
+        if (Math.random() < 0.02) { // 2% de chance par frame
+            if (this.obstacles.length === 0 || this.obstacles[this.obstacles.length-1].x < 1000) {
+                this.obstacles.push({ x: 1700, y: 770, w: 60, h: 100 });
+            }
         }
-        requestAnimationFrame(t => this.loop(t));
     }
 
     update() {
-        // Physique Joueur
-        this.player.dy += this.config.gravity * this.dt;
-        this.player.y += this.player.dy * this.dt;
+        // Gravité & Physique
+        this.player.dy += this.gravity;
+        this.player.y += this.player.dy;
 
-        // Rotation & Sol
-        if(this.player.y >= 340) {
-            this.player.y = 340; this.player.dy = 0; this.player.rot = 0;
+        // Limite du sol (Y=770 pour un cube de 70px)
+        if (this.player.y >= 700) {
+            this.player.y = 700;
+            this.player.dy = 0;
+            this.isGrounded = true;
+            this.player.rot = 0;
         } else {
-            this.player.rot += 7 * this.dt;
+            this.isGrounded = false;
+            this.player.rot += 0.15; // Rotation fluide
         }
 
-        // Gestion de la traînée (Trail effect)
-        this.player.trail.push({x: this.player.x, y: this.player.y});
-        if(this.player.trail.length > 10) this.player.trail.shift();
-
         // Obstacles
+        this.spawnObstacle();
         this.obstacles.forEach((ob, i) => {
-            ob.x -= this.config.speed * this.dt;
-            if(ob.x < -100) { this.obstacles.splice(i, 1); this.score++; }
+            ob.x -= this.speed;
+            
+            // Collision ultra-précise (Hitbox réduite de 10% pour le plaisir de jeu)
+            if (this.player.x + 10 < ob.x + ob.w &&
+                this.player.x + this.player.w - 10 > ob.x &&
+                this.player.y + 10 < ob.y + ob.h &&
+                this.player.y + this.player.h - 10 > ob.y) {
+                this.reset();
+            }
 
-            // Collision précise
-            if (this.player.x < ob.x + ob.w && this.player.x + 32 > ob.x &&
-                this.player.y + 32 > ob.y) this.reset();
+            if (ob.x < -100) {
+                this.obstacles.splice(i, 1);
+                this.score++;
+                this.speed += 0.1; // Difficultée progressive
+            }
         });
     }
 
     reset() {
-        Auth.updateBest(this.score);
-        this.score = 0;
         this.obstacles = [];
-        this.player.y = 340;
+        this.speed = 12;
+        this.score = 0;
     }
 
     draw() {
-        const c = this.ctx;
-        c.clearRect(0, 0, 800, 450);
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
 
-        // Trail
-        this.player.trail.forEach((p, i) => {
-            c.fillStyle = `rgba(0, 255, 136, ${i / 10})`;
-            c.fillRect(p.x + 4, p.y + 4, 24, 24);
-        });
+        // Fond (Grille Cyber)
+        ctx.strokeStyle = 'rgba(0, 255, 136, 0.1)';
+        ctx.lineWidth = 2;
+        for(let i=0; i<this.width; i+=100) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, this.height); ctx.stroke();
+        }
 
-        // Player
-        c.save();
-        c.translate(this.player.x + 16, this.player.y + 16);
-        c.rotate(this.player.rot * Math.PI / 180);
-        c.shadowBlur = 20; c.shadowColor = '#00ff88';
-        c.fillStyle = '#00ff88';
-        c.fillRect(-16, -16, 32, 32);
-        c.strokeStyle = '#fff'; c.strokeRect(-16, -16, 32, 32);
-        c.restore();
+        // Sol Néon
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowBlur = 20; ctx.shadowColor = '#00ff88';
+        ctx.fillRect(0, 770, this.width, 10);
 
-        // Obstacles
-        c.shadowBlur = 0;
+        // Dessin Joueur
+        ctx.save();
+        ctx.translate(this.player.x + 35, this.player.y + 35);
+        ctx.rotate(this.player.rot);
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(-35, -35, 70, 70);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-35, -35, 70, 70);
+        ctx.restore();
+
+        // Dessin Obstacles (Triangles rouges)
+        ctx.shadowBlur = 15; ctx.shadowColor = '#ff0055';
+        ctx.fillStyle = '#ff0055';
         this.obstacles.forEach(ob => {
-            c.fillStyle = '#ff0055';
-            c.beginPath();
-            c.moveTo(ob.x, ob.y + ob.h);
-            c.lineTo(ob.x + ob.w/2, ob.y);
-            c.lineTo(ob.x + ob.w, ob.y + ob.h);
-            c.fill();
+            ctx.beginPath();
+            ctx.moveTo(ob.x, ob.y + ob.h);
+            ctx.lineTo(ob.x + ob.w / 2, ob.y);
+            ctx.lineTo(ob.x + ob.w, ob.y + ob.h);
+            ctx.fill();
         });
 
-        // Sol Cyber
-        c.fillStyle = '#00ff88'; c.fillRect(0, 372, 800, 2);
+        // Score
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 50px Inter';
+        ctx.fillText(this.score.toString().padStart(2, '0'), 50, 80);
+    }
+
+    loop() {
+        this.update();
+        this.draw();
+        requestAnimationFrame(() => this.loop());
     }
 }
+
+window.onload = () => new CrossGame();

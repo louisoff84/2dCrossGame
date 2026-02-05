@@ -3,64 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
-    <title>CrossGame - Jeu</title>
+    <title>CrossGame - System</title>
 </head>
 <body>
-    <div class="sidebar">
-        <h2 id="display-name" style="color: var(--accent);">Joueur</h2>
-        <p style="font-size: 12px; color: #444;">Statut: En ligne</p>
-        <hr style="width: 100%; border: 0.5px solid var(--border); margin: 20px 0;">
+    <aside class="sidebar">
+        <div class="brand">CROSSGAME</div>
         
-        <nav style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="index.html" style="color: #888; text-decoration: none;">Déconnexion</a>
-            <a href="#" onclick="openAdmin()" style="color: #888; text-decoration: none;">Panel Admin</a>
-        </nav>
+        <div class="btn-nav active">🕹️ ARCADE MODULE</div>
+        <div class="btn-nav" onclick="engine.toggleAdmin()">🛠️ KERNEL SETTINGS</div>
+        <div class="btn-nav" onclick="location.href='index.html'">🔌 TERMINATE</div>
 
-        <div id="chat-box" style="margin-top: auto; height: 200px; font-size: 12px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 10px;">
-            <div style="color: #555;">[Système] Chat local activé.</div>
+        <div id="logs">
+            <div>[INIT] Kernel v2.2 loaded...</div>
+            <div>[AUTH] User: <span id="username" style="color:var(--secondary)">---</span></div>
         </div>
-        <input type="text" id="chat-in" class="glass-input" style="font-size: 12px; margin-top: 10px;" placeholder="Message...">
-    </div>
 
-    <div class="main-content">
-        <canvas id="game-canvas" width="700" height="500"></canvas>
-    </div>
+        <input type="text" class="input-glass" placeholder="Envoyer au serveur..." onkeydown="if(event.key==='Enter'){ document.getElementById('logs').innerHTML += `<div><b>Lokal:</b> ${this.value}</div>`; this.value=''; }">
+    </aside>
 
+    <main class="viewport">
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+        <div id="adminPanel" class="overlay">
+            <h4 style="margin:0 0 10px 0; color:var(--danger)">DEBUG MODE</h4>
+            <label style="font-size:10px">Engine Speed</label>
+            <input type="range" min="1" max="20" value="8" style="width:100%" oninput="engine.config.speed = parseInt(this.value)">
+            <label style="font-size:10px; margin-top:10px; display:block">Gravity</label>
+            <input type="range" min="0.1" max="2" step="0.1" value="0.7" style="width:100%" oninput="engine.config.gravity = parseFloat(this.value)">
+        </div>
+    </main>
+
+    <script src="core.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const user = urlParams.get('user') || localStorage.getItem('user_neon') || "Anonyme";
-        document.getElementById('display-name').innerText = user;
-
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        let player = { x: 50, y: 400, w: 25, h: 25, dy: 0 };
-        let gravity = 0.5;
-
-        function update() {
-            player.dy += gravity;
-            player.y += player.dy;
-            if(player.y > 450) { player.y = 450; player.dy = 0; } // Sol virtuel
-
-            ctx.clearRect(0,0,700,500);
-            ctx.fillStyle = "#00ff88";
-            ctx.shadowBlur = 15; ctx.shadowColor = "#00ff88";
-            ctx.fillRect(player.x, player.y, player.w, player.h);
-            requestAnimationFrame(update);
-        }
-        update();
-
-        document.getElementById('chat-in').addEventListener('keypress', function(e) {
-            if(e.key === 'Enter') {
-                const box = document.getElementById('chat-box');
-                box.innerHTML += `<div><b style="color:var(--accent)">${user}:</b> ${this.value}</div>`;
-                this.value = "";
-                box.scrollTop = box.scrollHeight;
-            }
-        });
-
-        function openAdmin() {
-            window.location.href = `admin.html?from=${user}`;
-        }
+        document.getElementById('username').innerText = (localStorage.getItem('cg_user') || 'GUEST').toUpperCase();
     </script>
 </body>
 </html>

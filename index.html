@@ -2,26 +2,61 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <title>CrossGame - High Performance</title>
     <link rel="stylesheet" href="style.css">
-    <title>CrossGame - Accueil</title>
 </head>
 <body>
-    <div class="main-content">
-        <div style="text-align: center; width: 300px;">
-            <h1 style="letter-spacing: 5px; color: var(--accent);">CrossGame</h1>
-            <p style="color: #666; margin-bottom: 40px;">By louis_off - Made with ❤️ - for alexis</p>
-            
-            <input type="text" id="username" class="glass-input" style="width:100%" placeholder="Entrez un pseudo...">
-            <button class="btn-neon" style="width:100%" onclick="login()">ENTRER DANS LE SERVEUR</button>
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-card">
+            <div class="brand">CROSSGAME</div>
+            <input type="text" id="user-input" class="input-field" placeholder="ENTER PLAYER ID">
+            <button class="nav-link active" style="width:100%; border:none;" onclick="handleLogin()">INITIALIZE SYSTEM</button>
         </div>
     </div>
 
+    <aside class="sidebar">
+        <div class="brand">CROSSGAME</div>
+        <div class="nav-group">
+            <div class="nav-link active">🎮 ARCADE KERNEL</div>
+            <div class="nav-link" onclick="Auth.logout()">🔌 DISCONNECT</div>
+        </div>
+        <div id="stats" style="margin-top:2rem; font-size: 0.8rem; color: #444;">
+            USER: <span id="stat-user" style="color:var(--secondary)">---</span><br>
+            BEST: <span id="stat-best" style="color:var(--primary)">0</span>
+        </div>
+    </aside>
+
+    <main class="main-stage">
+        <div style="position:absolute; top:40px; font-size:2rem; font-weight:900; opacity:0.1" id="score-live">00</div>
+        <canvas id="game-canvas" width="800" height="450"></canvas>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="engine.js"></script>
     <script>
-        function login() {
-            const user = document.getElementById('username').value;
-            if(user.length > 2) {
-                localStorage.setItem('user_neon', user);
-                window.location.href = `game.html?user=${encodeURIComponent(user)}`;
+        const engine = new CrossEngine();
+
+        function handleLogin() {
+            const name = document.getElementById('user-input').value;
+            if(name.length > 2) {
+                Auth.saveSession(name);
+                location.reload();
+            }
+        }
+
+        window.onload = () => {
+            const user = Auth.getSession();
+            if(user) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('stat-user').innerText = user.toUpperCase();
+                const accounts = JSON.parse(localStorage.getItem('cg_accounts'));
+                document.getElementById('stat-best').innerText = accounts[user].bestScore;
+                engine.start();
+                
+                // Update live score display
+                setInterval(() => {
+                    document.getElementById('score-live').innerText = engine.score.toString().padStart(2, '0');
+                }, 100);
             }
         }
     </script>

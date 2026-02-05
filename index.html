@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <title>CrossGame - Accueil</title>
+</head>
+<body>
+    <div class="main-content">
+        <div style="text-align: center; width: 300px;">
+            <h1 style="letter-spacing: 5px; color: var(--accent);">NEON</h1>
+            <p style="color: #666; margin-bottom: 40px;">By louis_off - Made with ❤️ - for alexis</p>
+            
+            <input type="text" id="username" class="glass-input" style="width:100%" placeholder="Entrez un pseudo...">
+            <button class="btn-neon" style="width:100%" onclick="login()">ENTRER DANS LE SERVEUR</button>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            const user = document.getElementById('username').value;
+            if(user.length > 2) {
+                localStorage.setItem('user_neon', user);
+                window.location.href = `game.html?user=${encodeURIComponent(user)}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -2,62 +2,44 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>CrossGame - High Performance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossGame - High Power Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="auth-screen" class="auth-container">
-        <div class="auth-card">
-            <div class="brand">CROSSGAME</div>
-            <input type="text" id="user-input" class="input-field" placeholder="ENTER PLAYER ID">
-            <button class="nav-link active" style="width:100%; border:none;" onclick="handleLogin()">INITIALIZE SYSTEM</button>
-        </div>
-    </div>
 
     <aside class="sidebar">
         <div class="brand">CROSSGAME</div>
-        <div class="nav-group">
-            <div class="nav-link active">🎮 ARCADE KERNEL</div>
-            <div class="nav-link" onclick="Auth.logout()">🔌 DISCONNECT</div>
+        
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="font-size: 12px; color: #888;">LOGGED AS:</p>
+            <p id="user-display" style="color: var(--primary); font-weight: bold;">---</p>
         </div>
-        <div id="stats" style="margin-top:2rem; font-size: 0.8rem; color: #444;">
-            USER: <span id="stat-user" style="color:var(--secondary)">---</span><br>
-            BEST: <span id="stat-best" style="color:var(--primary)">0</span>
-        </div>
+
+        <button class="btn-ui" onclick="location.reload()">RESTART ENGINE</button>
+        <button class="btn-ui" style="margin-top: auto; background: var(--danger);" onclick="logout()">LOGOUT</button>
     </aside>
 
-    <main class="main-stage">
-        <div style="position:absolute; top:40px; font-size:2rem; font-weight:900; opacity:0.1" id="score-live">00</div>
-        <canvas id="game-canvas" width="800" height="450"></canvas>
+    <main class="viewport">
+        <div id="game-wrapper">
+            <canvas id="crossCanvas"></canvas>
+            <div class="hud">SESSION_01 // STABLE</div>
+        </div>
     </main>
 
-    <script src="auth.js"></script>
     <script src="engine.js"></script>
     <script>
-        const engine = new CrossEngine();
-
-        function handleLogin() {
-            const name = document.getElementById('user-input').value;
-            if(name.length > 2) {
-                Auth.saveSession(name);
-                location.reload();
-            }
+        // Système de compte ultra-basique pour GitHub
+        let user = localStorage.getItem('cg_user');
+        if(!user) {
+            user = prompt("IDENTIFIANT REQUIS :");
+            localStorage.setItem('cg_user', user || 'GUEST');
         }
+        document.getElementById('user-display').innerText = user.toUpperCase();
 
-        window.onload = () => {
-            const user = Auth.getSession();
-            if(user) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('stat-user').innerText = user.toUpperCase();
-                const accounts = JSON.parse(localStorage.getItem('cg_accounts'));
-                document.getElementById('stat-best').innerText = accounts[user].bestScore;
-                engine.start();
-                
-                // Update live score display
-                setInterval(() => {
-                    document.getElementById('score-live').innerText = engine.score.toString().padStart(2, '0');
-                }, 100);
-            }
+        function logout() {
+            localStorage.removeItem('cg_user');
+            location.reload();
         }
     </script>
 </body>
